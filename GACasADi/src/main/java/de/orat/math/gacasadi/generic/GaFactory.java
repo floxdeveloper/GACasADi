@@ -5,6 +5,8 @@ import de.dhbw.rahmlab.casadi.impl.casadi.SX;
 import de.dhbw.rahmlab.casadi.impl.casadi.Sparsity;
 import de.dhbw.rahmlab.casadi.nativelib.NativeLibLoader;
 import de.orat.math.gacalc.spi.IGAFactory;
+import de.orat.math.gacalc.spi.IGAFunctionSpecializationCache;
+import de.orat.math.gacasadi.caching.GaFunctionSpecializationCache;
 import de.orat.math.gacasadi.algebraGeneric.api.IAlgebra;
 import de.orat.math.sparsematrix.ColumnVectorSparsity;
 import de.orat.math.sparsematrix.SparseDoubleColumnVector;
@@ -29,6 +31,11 @@ public abstract class GaFactory<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR exte
 
     @Override
     public abstract GaFunction<EXPR, VAR, VAL> createFunction(String name, List<? extends VAR> parameters, List<? extends EXPR> returns);
+
+    @Override
+    public IGAFunctionSpecializationCache<EXPR, VAR, VAL> newCache() {
+        return new GaFunctionSpecializationCache<>(this);
+    }
 
     public abstract IAlgebra getIAlgebra();
 

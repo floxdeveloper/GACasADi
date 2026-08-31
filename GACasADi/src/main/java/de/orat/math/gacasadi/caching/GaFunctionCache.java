@@ -28,6 +28,7 @@ public class GaFunctionCache<CACHED, EXPR extends GaMvExpr<EXPR, VAR, VAL>, VAR 
         = new HashMap<>(1024, 0.5f);
 
     private static final boolean NOCACHE = false;
+    private static final boolean FAST_SIMPLIFY = true;
 
     private final GaFactory<EXPR, VAR, VAL> fac;
     private final ICachedFactory<CACHED, EXPR, VAR, VAL> cachedFac;
@@ -85,8 +86,12 @@ public class GaFunctionCache<CACHED, EXPR extends GaMvExpr<EXPR, VAR, VAL>, VAR 
         List<CACHED> paramsEXPR = symbolicMultivectorParams.stream().map(VAR::asEXPR).map(cachedFac::cachedEXPR).toList();
 
         // Specific type: CachedGaMvExpr.
-        EXPR symbolicReturn = res.apply(paramsEXPR).simplifyFast(); // Casadi
-        // EXPR symbolicReturn = res.apply(paramsEXPR).simplify(symbolicMultivectorParams); // Maxima
+        EXPR symbolicReturn;
+        if (FAST_SIMPLIFY) {
+            symbolicReturn = res.apply(paramsEXPR).simplifyFast(); // Casadi
+        } else {
+            symbolicReturn = res.apply(paramsEXPR).simplify(symbolicMultivectorParams); // Maxima
+        }
         GaFunction<EXPR, VAR, VAL> func = fac.createFunction(name, casadiFuncParams, List.of(symbolicReturn));
         return func;
     }
