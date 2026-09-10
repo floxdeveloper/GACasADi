@@ -7,4 +7,4 @@ nbproject
 
 #Ignore generated folders
 **/target
-
+**/.codegraph
