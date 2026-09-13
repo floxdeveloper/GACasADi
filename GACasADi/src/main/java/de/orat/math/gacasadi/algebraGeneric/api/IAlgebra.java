@@ -69,7 +69,7 @@ public interface IAlgebra {
      */
     public static int minusOneToThePowerOf(int exponent) {
         // n & 0x1 == abs(n) mod 2
-        return -1 + 2 * ((exponent + 1) & 0x1);
+        return -1 + 2 * ((~exponent) & 1);
     }
 
     public static List<Integer> computeGradeToReverseSign(int gradesCount) {
