@@ -37,7 +37,7 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
      * @param name A valid CasADi function name starts with a letter followed by letters, numbers or
      * non-consecutive underscores.
      */
-    public GaFunction(GaFactory<EXPR, VAR, VAL> fac, String name, List<? extends VAR> parameters, List<? extends IGaMvExpr> returns) {
+    public GaFunction(GaFactory<EXPR, VAR, VAL> fac, String name, List<? extends VAR> parameters, List<? extends EXPR> returns) {
         try {
             this.fac = fac;
             this.params = Collections.unmodifiableList(parameters);
@@ -131,6 +131,17 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
     @Override
     public List<VAR> getParameters() {
         return this.params;
+    }
+
+    @Override
+    public List<EXPR> toExprs() {
+        // These are just the returns given to the constructor.
+        // Unsure: caching them might be expensive if they otherwise could be freed.
+        // Expected toExprs to be used rarely.
+        // And its cheap to call this function anyway.
+        // But its good to make more explicit that GaFunction and GaMvExpr kind of isomorphic.
+        List<EXPR> paramsAsExpr = this.params.stream().map(VAR::asEXPR).toList();
+        return this.callExpr(paramsAsExpr);
     }
 
     @Override
