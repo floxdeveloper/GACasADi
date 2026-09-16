@@ -1,16 +1,17 @@
 package de.orat.math.gacasadi.generic;
 
-import de.dhbw.rahmlab.casadi.impl.casadi.DM;
+import de.dhbw.rahmlab.casadi.impl.casadi.CodeGenerator;
 import de.dhbw.rahmlab.casadi.impl.casadi.Function;
+import de.dhbw.rahmlab.casadi.impl.casadi.GenericType;
 import de.dhbw.rahmlab.casadi.impl.casadi.SX;
 import de.dhbw.rahmlab.casadi.impl.casadi.Sparsity;
-import de.dhbw.rahmlab.casadi.impl.std.StdVectorDouble;
+import de.dhbw.rahmlab.casadi.impl.std.Dict;
 import de.dhbw.rahmlab.casadi.impl.std.StdVectorSX;
 import de.dhbw.rahmlab.casadi.implUtil.WrapUtil;
 import de.orat.math.gacalc.spi.IGAFunction;
-import de.orat.math.gacalc.spi.IMultivectorVariable;
 import static de.orat.math.gacasadi.generic.CasADiUtil.areSparsitiesSupersetsOfSubsets;
 import static de.orat.math.gacasadi.generic.CasADiUtil.toSparsities;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,6 +24,7 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
     private final int arity;
     private final int resultCount;
     private final List<Sparsity> paramsSparsities;
+    private final List<VAR> params;
     private final GaFactory<EXPR, VAR, VAL> fac;
 
     private final Function f_sym_casadi;
@@ -35,15 +37,16 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
      * @param name A valid CasADi function name starts with a letter followed by letters, numbers or
      * non-consecutive underscores.
      */
-    public <MV extends IGetSX & IMultivectorVariable> GaFunction(GaFactory<EXPR, VAR, VAL> fac, String name, List<MV> parameters, List<? extends IGaMvExpr> returns) {
+    public GaFunction(GaFactory<EXPR, VAR, VAL> fac, String name, List<? extends VAR> parameters, List<? extends IGaMvExpr> returns) {
         try {
             this.fac = fac;
+            this.params = Collections.unmodifiableList(parameters);
             this.paramsSparsities = parameters.stream().map(IGetSX::getSX).map(SX::sparsity).toList();
             StdVectorSX def_sym_in = transformImpl(parameters);
             StdVectorSX def_sym_out = transformImpl(returns);
             this.name = name;
-            arity = parameters.size();
-            resultCount = returns.size();
+            this.arity = parameters.size();
+            this.resultCount = returns.size();
             this.f_sym_casadi = new Function(name, def_sym_in, def_sym_out);
         } finally {
             WrapUtil.MANUAL_CLEANER.cleanupUnreachable();
@@ -105,7 +108,6 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
         DM call_num_in = new DM(vecDouble);
     }
      */
-
     @Override
     public String toString() {
         return f_sym_casadi.toString();
@@ -124,5 +126,20 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public List<VAR> getParameters() {
+        return this.params;
+    }
+
+    @Override
+    public void generateC(String path, String fileName) {
+        Dict options = new Dict();
+        options.put("with_header", new GenericType(true));
+        CodeGenerator generator = new CodeGenerator(fileName, options);
+        // c function name will be same as casadi function name.
+        generator.add(this.f_sym_casadi);
+        generator.generate(path);
     }
 }
