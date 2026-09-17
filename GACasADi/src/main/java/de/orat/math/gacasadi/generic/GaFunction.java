@@ -13,6 +13,7 @@ import static de.orat.math.gacasadi.generic.CasADiUtil.areSparsitiesSupersetsOfS
 import static de.orat.math.gacasadi.generic.CasADiUtil.toSparsities;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Oliver Rettig (Oliver.Rettig@orat.de)
@@ -42,7 +43,7 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
             this.fac = fac;
             this.params = Collections.unmodifiableList(parameters);
             this.paramsSparsities = parameters.stream().map(IGetSX::getSX).map(SX::sparsity).toList();
-            StdVectorSX def_sym_in = transformImpl(parameters);
+            StdVectorSX def_sym_in = transformImpl(Stream.concat(parameters.stream(), Stream.of(fac.PI_VAR())).toList());
             StdVectorSX def_sym_out = transformImpl(returns);
             this.name = name;
             this.arity = parameters.size();
@@ -67,7 +68,7 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
             }
             assert areSparsitiesSupersetsOfSubsets(this.paramsSparsities, toSparsities(arguments));
 
-            StdVectorSX call_sym_in = transformImpl(arguments);
+            StdVectorSX call_sym_in = transformImpl(Stream.concat(arguments.stream(), Stream.of(this.fac.PI_EXPR())).toList());
             StdVectorSX call_sym_out = new StdVectorSX();
             this.f_sym_casadi.call(call_sym_in, call_sym_out);
             return call_sym_out.stream().map(sx -> fac.SXtoEXPR(sx)).toList();
@@ -86,8 +87,10 @@ public class GaFunction<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR extends IGaM
             assert areSparsitiesSupersetsOfSubsets(this.paramsSparsities, toSparsities(arguments));
 
             // For unknown reasons under certain circumstances, calling with DM produces NaN, while calling with SX produces the correct value.
-            StdVectorSX call_num_in = new StdVectorSX(arguments.stream()
-                .map(IGaMvValue::getDM)
+            StdVectorSX call_num_in = new StdVectorSX(Stream.concat(
+                arguments.stream()
+                    .map(IGaMvValue::getDM),
+                Stream.of(this.fac.PI_VAL().getDM()))
                 .map(CasADiUtil::toSX)
                 .toList()
             );

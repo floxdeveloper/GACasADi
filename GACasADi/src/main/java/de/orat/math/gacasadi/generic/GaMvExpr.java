@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class GaMvExpr<EXPR extends GaMvExpr<EXPR, VAR, VAL>, VAR extends IGaMvVariable<EXPR, VAR, VAL>, VAL extends IGaMvValue<EXPR, VAR, VAL>>
     implements IGaMvExpr<EXPR, VAR, VAL> {
@@ -100,8 +101,10 @@ public abstract class GaMvExpr<EXPR extends GaMvExpr<EXPR, VAR, VAL>, VAR extend
         Optional<ICasADiExternalProcessor> processorOpt = ExternalServiceLoader.getProcessor();
         SX result;
         if (processorOpt.isPresent()) {
-            List<SX> variablesSX = variables.stream().map(VAR::getSX).toList();
-            result = processorOpt.get().simplifySparsify(this.sx, variablesSX);
+            List<SX> variablesSX = variables.stream().map(VAR::getSX).collect(Collectors.toCollection(ArrayList::new));
+            VAR PI_VAR = this.fac().PI_VAR();
+            variablesSX.add(PI_VAR.getSX());
+            result = processorOpt.get().simplifySparsify(this.sx, variablesSX, PI_VAR.getSX().at(0, 0).toString());
         } else {
             result = GaMvExpr.simplifySparsifySX(this.sx);
         }

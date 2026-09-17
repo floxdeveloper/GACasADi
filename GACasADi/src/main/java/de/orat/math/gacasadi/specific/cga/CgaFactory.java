@@ -13,6 +13,7 @@ import de.orat.math.sparsematrix.ColumnVectorSparsity;
 import de.orat.math.sparsematrix.MatrixSparsity;
 import de.orat.math.sparsematrix.SparseDoubleMatrix;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class CgaFactory extends GaFactory<CgaMvExpr, CgaMvVariable, CgaMvValue> 
     }
 
     private Map<String, CgaMvExpr> createConstants() {
-        var map = new HashMap<String, CgaMvExpr>();
+        var map = new HashMap<String, CgaMvExpr>(super.getConstants()); //PI
 
         map.put("ε₀", createBaseVectorOrigin().toExpr());
         map.put("εᵢ", createBaseVectorInfinity().toExpr());
@@ -49,7 +50,6 @@ public class CgaFactory extends GaFactory<CgaMvExpr, CgaMvVariable, CgaMvValue> 
         map.put("ε₃", createBaseVectorZ().toExpr());
         map.put("ε₊", createEpsilonPlus().toExpr());
         map.put("ε₋", createEpsilonMinus().toExpr());
-        map.put("π", createScalar(Math.PI).toExpr());
         map.put("∞", createBaseVectorInfinityDorst().toExpr());
         map.put("o", createBaseVectorOriginDorst().toExpr());
         map.put("n", createBaseVectorInfinityDoran().toExpr());
@@ -58,7 +58,7 @@ public class CgaFactory extends GaFactory<CgaMvExpr, CgaMvVariable, CgaMvValue> 
         map.put("E₃", createEuclideanPseudoscalar().toExpr());
         map.put("I", createPseudoscalar().toExpr());
 
-        return map;
+        return Collections.unmodifiableMap(map);
     }
 
     public Map<String, CgaMvExpr> constants = null;

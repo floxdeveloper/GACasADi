@@ -6,12 +6,15 @@ import de.dhbw.rahmlab.casadi.impl.casadi.Sparsity;
 import de.dhbw.rahmlab.casadi.nativelib.NativeLibLoader;
 import de.orat.math.gacalc.spi.IGAFactory;
 import de.orat.math.gacalc.spi.IGAFunctionSpecializationCache;
-import de.orat.math.gacasadi.caching.GaFunctionSpecializationCache;
 import de.orat.math.gacasadi.algebraGeneric.api.IAlgebra;
+import de.orat.math.gacasadi.caching.GaFunctionSpecializationCache;
 import de.orat.math.sparsematrix.ColumnVectorSparsity;
 import de.orat.math.sparsematrix.SparseDoubleColumnVector;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -23,6 +26,38 @@ public abstract class GaFactory<EXPR extends IGaMvExpr<EXPR, VAR, VAL>, VAR exte
     static {
         // Init JCasADi eagerly to improve profiling.
         NativeLibLoader.load();
+    }
+
+    private VAR piVar;
+    private EXPR piExpr;
+    private VAL piVal;
+
+    public VAR PI_VAR() {
+        if (piVar == null) {
+            piVar = createVariable("PI", 0);
+        }
+        return piVar;
+    }
+
+    public EXPR PI_EXPR() {
+        if (piExpr == null) {
+            piExpr = PI_VAR().asEXPR();
+        }
+        return piExpr;
+    }
+
+    public VAL PI_VAL() {
+        if (piVal == null) {
+            piVal = createValue(Math.PI);
+        }
+        return piVal;
+    }
+
+    @Override
+    public Map<String, EXPR> getConstants() {
+        var map = new HashMap<String, EXPR>();
+        map.put("π", PI_EXPR());
+        return Collections.unmodifiableMap(map);
     }
 
     protected abstract EXPR SXtoEXPR(SX sx);

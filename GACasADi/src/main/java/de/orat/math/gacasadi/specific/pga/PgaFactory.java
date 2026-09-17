@@ -14,6 +14,7 @@ import de.orat.math.sparsematrix.ColumnVectorSparsity;
 import de.orat.math.sparsematrix.MatrixSparsity;
 import de.orat.math.sparsematrix.SparseDoubleMatrix;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,16 +180,15 @@ public class PgaFactory extends GaFactory<PgaMvExpr, PgaMvVariable, PgaMvValue> 
     }
 
     private Map<String, PgaMvExpr> createConstants() {
-        Map<String, PgaMvExpr> map = new HashMap<>();
+        Map<String, PgaMvExpr> map = new HashMap<>(super.getConstants()); //PI
 
         map.put("ε₀", createBaseVectorOrigin().toExpr());
         map.put("ε₁", createBaseVectorX().toExpr());
         map.put("ε₂", createBaseVectorY().toExpr());
         map.put("ε₃", createBaseVectorZ().toExpr());
-        map.put("π", createScalar(Math.PI).toExpr());
         map.put("E₃", createEuclideanPseudoscalar().toExpr());
         map.put("I", createPseudoscalar().toExpr());
 
-        return map;
+        return Collections.unmodifiableMap(map);
     }
 }
