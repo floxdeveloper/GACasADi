@@ -12,6 +12,7 @@ import de.orat.math.gacasadi.algebraGeneric.api.IProduct;
 import de.orat.math.gacasadi.caching.annotation.api.Uncached;
 import de.orat.math.sparsematrix.ColumnVectorSparsity;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -660,5 +661,16 @@ public abstract class GaMvExpr<EXPR extends GaMvExpr<EXPR, VAR, VAL>, VAR extend
     public static SX copySX(SX toBeCopied) {
         // copy constructor
         return new SX(toBeCopied);
+    }
+
+    @Override
+    public EXPR filterGrade(int grade) {
+        IAlgebra algebra = this.getIAlgebra();
+        if ((grade >= algebra.getGradesCount()) || (grade < 0)) {
+            throw new IllegalArgumentException(String.format("Grade %s does not exist in this algebra.", grade));
+        }
+        int[] gradeIndices = algebra.getIndizes(grade);
+        List<Integer> gradeIndicesList = Arrays.stream(gradeIndices).boxed().toList();
+        return this.filter(gradeIndicesList);
     }
 }
